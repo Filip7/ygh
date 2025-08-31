@@ -1,0 +1,27 @@
+name: create go binaries
+on:
+  release:
+    types:
+      - released
+
+permissions:
+  contents: write
+
+jobs:
+  release-binary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up go
+        uses: actions/setup-go@v5
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN  }}
