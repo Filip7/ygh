@@ -49,21 +49,25 @@ func main() {
 		fmt.Scanln(&input)
 		switch input {
 		case "y", "Y":
-			pkgbuild := fmt.Sprintf("%s\n", body)
-			fmt.Printf("%s", pkgbuild)
-		case "N", "n", "":
-		default:
-			fmt.Println("Continue")
+			handlePKGBUILDShowing(body, pkg)
 		}
 
 		fmt.Println("Cloning the repo...")
-		if err := runCommand("git", "clone", "--branch", pkg, "--single-branch", "https://github.com/archlinux/aur.git", installLoc+"/"+pkg); err != nil {
-			fmt.Println("error happend cloning git repo")
-			fmt.Println(err)
+		if _, err := os.Stat(installLoc + "/" + pkg); os.IsNotExist(err) {
+			if err := runCommand("git", "clone", "--branch", pkg, "--single-branch", "https://github.com/archlinux/aur.git", installLoc+"/"+pkg); err != nil {
+				fmt.Println("error happend cloning git repo")
+				fmt.Println(err)
+			}
+		} else {
+			fmt.Println("Repo exists...updating")
+			if err := runCommand("git", "fetch", installLoc+"/"+pkg); err != nil {
+				fmt.Println("error happend updating git repo")
+				fmt.Println(err)
+			}
 		}
 
 		fmt.Println("Building the package")
-		if err := runCommand("makepkg", "-D", installLoc+"/"+pkg); err != nil {
+		if err := runCommand("makepkg", "-f", "-D", installLoc+"/"+pkg); err != nil {
 			fmt.Println("error happend making the packages")
 			fmt.Println(err)
 		}
@@ -74,6 +78,19 @@ func main() {
 			fmt.Println("error happend installing the packages")
 			fmt.Println(err)
 		}
+	}
+}
+
+func handlePKGBUILDShowing(body []byte, pkg string) {
+	pkgbuild := fmt.Sprintf("%s\n", body)
+	fmt.Printf("%s", pkgbuild)
+	fmt.Printf("Do you want to continue with the build for %s? [Y/n]: ", pkg)
+	var buildInput string
+	fmt.Scanln(&buildInput)
+	switch buildInput {
+	case "n", "N":
+		fmt.Println("Exiting...")
+		os.Exit(0)
 	}
 }
 
