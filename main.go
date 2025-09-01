@@ -21,13 +21,7 @@ func main() {
 	flag.Parse()
 	packageNames := flag.Args()
 
-	installLoc := "/tmp/ygh"
-	if _, err := os.Stat(installLoc); os.IsNotExist(err) {
-		err := os.Mkdir(installLoc, 0755)
-		if err != nil {
-			log.Fatalln("error creating '/tmp/ygh' directory")
-		}
-	}
+	installLoc := setupInstallDir()
 
 	for _, pkg := range packageNames {
 		url := fmt.Sprintf("https://raw.githubusercontent.com/archlinux/aur/refs/heads/%s/PKGBUILD", pkg)
@@ -73,6 +67,22 @@ func main() {
 			fmt.Println(err)
 		}
 	}
+}
+
+func setupInstallDir() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalln("Error getting user home directory")
+	}
+
+	installLoc := homeDir + "/.cache/ygh"
+	if _, err := os.Stat(installLoc); os.IsNotExist(err) {
+		err := os.Mkdir(installLoc, 0755)
+		if err != nil {
+			log.Fatalln("error creating" + installLoc + " directory")
+		}
+	}
+	return installLoc
 }
 
 func handlePKGBUILDShowing(body []byte, pkg string) bool {
