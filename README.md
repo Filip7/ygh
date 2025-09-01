@@ -33,7 +33,7 @@ Etc.
 ## Should you use this as your main AUR helper?
 
 No, absolutely not, this is not fully featured nor battle tested.  
-If you are looking for recommendations, I recommend [yay](https://github.com/Jguer/yay)
+If you are looking for recommendations, look at [yay](https://github.com/Jguer/yay)
 
 ## Contributing
 
