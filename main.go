@@ -49,7 +49,10 @@ func main() {
 		fmt.Scanln(&input)
 		switch input {
 		case "y", "Y":
-			handlePKGBUILDShowing(body, pkg)
+			shouldSkip := handlePKGBUILDShowing(body, pkg)
+			if shouldSkip {
+				continue
+			}
 		}
 
 		fmt.Println("Cloning the repo...")
@@ -81,7 +84,7 @@ func main() {
 	}
 }
 
-func handlePKGBUILDShowing(body []byte, pkg string) {
+func handlePKGBUILDShowing(body []byte, pkg string) bool {
 	pkgbuild := fmt.Sprintf("%s\n", body)
 	fmt.Printf("%s", pkgbuild)
 	fmt.Printf("Do you want to continue with the build for %s? [Y/n]: ", pkg)
@@ -89,9 +92,10 @@ func handlePKGBUILDShowing(body []byte, pkg string) {
 	fmt.Scanln(&buildInput)
 	switch buildInput {
 	case "n", "N":
-		fmt.Println("Exiting...")
-		os.Exit(0)
+		fmt.Printf("Skipping instalation of %s...", pkg)
+		return true
 	}
+	return false
 }
 
 func findPkgName(pkgName string, location string) string {
