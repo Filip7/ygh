@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/Filip7/ygh/compare/v1.0.0...v1.1.0) (2025-09-01)
+
+
+### Features
+
+* use $HOME/.cache/ygh as install dir for pkgs ([#3](https://github.com/Filip7/ygh/issues/3)) ([1bb0807](https://github.com/Filip7/ygh/commit/1bb08078a452498ae8988f1ab91c63594016cf04))
+* use makepkg for installing instead of calling pacman ([4831448](https://github.com/Filip7/ygh/commit/48314486e2bf62a62e8ab0c304ebe44eb02bd96b))
+
 ## 1.0.0 (2025-09-01)
 
 
