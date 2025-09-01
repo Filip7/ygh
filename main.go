@@ -4,13 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
-	"slices"
-	"strings"
 )
 
 type Args struct {
@@ -69,16 +66,10 @@ func main() {
 			}
 		}
 
-		fmt.Println("Building the package")
-		if err := runCommand("makepkg", "-f", "-D", installLoc+"/"+pkg); err != nil {
+		fmt.Println("Building and installing the package")
+		// instal dependencies, install, clean
+		if err := runCommand("makepkg", "-f", "-s", "-i", "-c", "-D", installLoc+"/"+pkg); err != nil {
 			fmt.Println("error happend making the packages")
-			fmt.Println(err)
-		}
-
-		fmt.Println("Installing the package")
-		builtPkg := findPkgName(pkg, installLoc)
-		if err := runCommand("sudo", "pacman", "-U", installLoc+"/"+pkg+"/"+builtPkg); err != nil {
-			fmt.Println("error happend installing the packages")
 			fmt.Println(err)
 		}
 	}
@@ -96,22 +87,6 @@ func handlePKGBUILDShowing(body []byte, pkg string) bool {
 		return true
 	}
 	return false
-}
-
-func findPkgName(pkgName string, location string) string {
-	root := os.DirFS(location + "/" + pkgName)
-	pkgs, err := fs.Glob(root, "*.pkg.tar.zst")
-	if err != nil {
-		log.Fatalln("error happend locating built package", err)
-	}
-
-	for i, f := range pkgs {
-		if strings.Contains(f, "debug") {
-			pkgs = slices.Delete(pkgs, i, i)
-		}
-	}
-
-	return pkgs[0]
 }
 
 func runCommand(name string, args ...string) error {
