@@ -27,7 +27,6 @@ Use it like this
 
 The plan is to support more of the `pacman` commands. Look into the ALPM project and maybe use it instead of calling makepkg via command execute.  
 Investigate how to implement updates.  
-Saving the repos elsewhere, instead of inside `/tmp` repo.  
 Etc.
 
 ## Should you use this as your main AUR helper?
