@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Filip7/ygh/compare/v1.1.0...v1.2.0) (2025-09-03)
+
+
+### Features
+
+* add option to edit the PKBUILD before installing ([2758f89](https://github.com/Filip7/ygh/commit/2758f89004ecc32578647e60f9d37f4028327f85))
+
 ## [1.1.0](https://github.com/Filip7/ygh/compare/v1.0.0...v1.1.0) (2025-09-01)
 
 
