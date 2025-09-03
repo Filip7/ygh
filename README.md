@@ -74,6 +74,16 @@ If the app detects that the app is already downloaded, it will try to update it 
 ygh --editor nvim -S yay
 ```
 
+### Update packages
+
+Use `-Syu` option to update packages installed using `ygh`
+
+```sh
+ygh -Syu
+```
+
+This will walk all the installed packages, git fetch and install them.
+
 ### Deletion of packages
 
 ```sh
@@ -84,15 +94,20 @@ This will use `pacman` in the background to delete the package and will also del
 
 ## Future plan
 
-The plan is to support more of the `pacman` commands. Look into the ALPM project and maybe use it instead of calling makepkg via command execute.  
-Investigate how to implement updates.  
-Etc.
+- If git pull has nothing to pull, skip update
+- Make code a bit better, centralize logging of err msgs, move code to it's own packages or files
+- For update, fetch updates from multiple goroutines instead of doing it in a for loop
+- Look into the ALPM and see if that could be used directly
+- Support any other `pacman` style commands?
+
+Etc, etc.
 
 Basically learn the Arch ecosystem
 
 ## Should you use this as your main AUR helper?
 
-No, absolutely not, this is not fully featured nor battle tested.  
+No, **absolutely not**, this is not fully featured nor battle tested.  
+Also, it's recommended and advised to use only the official AUR repository as a source, even though the GitHub mirror is official, it's marked as experimental!  
 If you are looking for recommendations, look at [yay](https://github.com/Jguer/yay)
 
 ## Contributing

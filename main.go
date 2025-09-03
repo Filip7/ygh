@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -14,6 +13,7 @@ import (
 type Args struct {
 	S      bool
 	R      bool
+	Syu    bool
 	editor string
 }
 
@@ -29,13 +29,20 @@ func main() {
 		doInstall(packageNames, installLoc)
 	}
 
+	if args.Syu {
+		doUpdate(installLoc)
+	}
+
 	if args.R {
 		doRemove(packageNames, installLoc)
 	}
+
+	flag.Usage()
 }
 
 func flagProcessing() {
-	flag.BoolVar(&args.S, "S", false, "Do the sync operation")
+	flag.BoolVar(&args.S, "S", false, "Install packages")
+	flag.BoolVar(&args.Syu, "Syu", false, "Update packages")
 	flag.BoolVar(&args.R, "R", false, "Remove packages")
 	flag.StringVar(&args.editor, "editor", "", "Define editor to use when editing the PKGBUILD")
 	flag.Parse()
@@ -47,11 +54,13 @@ func doInstall(packageNames []string, installLoc string) {
 		resp, err := http.Get(url)
 		if err != nil {
 			fmt.Println("error happened fetching PKGBUILD for " + pkg)
+			os.Exit(1)
 		}
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println("Error happend ", err)
+			os.Exit(1)
 		}
 
 		var input string
@@ -71,12 +80,14 @@ func doInstall(packageNames []string, installLoc string) {
 			if err := runCommand("git", "clone", "--branch", pkg, "--single-branch", "https://github.com/archlinux/aur.git", pkgInstall); err != nil {
 				fmt.Println("error happend cloning git repo")
 				fmt.Println(err)
+				os.Exit(1)
 			}
 		} else {
 			fmt.Println("Repo exists...updating " + pkg)
-			if err := runCommand("git", "fetch", pkgInstall); err != nil {
+			if err := runCommand("git", "pull", pkgInstall); err != nil {
 				fmt.Println("error happend updating git repo")
 				fmt.Println(err)
+				os.Exit(1)
 			}
 		}
 
@@ -88,6 +99,7 @@ func doInstall(packageNames []string, installLoc string) {
 			if err := runCommand(editor, pkgInstall+"/PKGBUILD"); err != nil {
 				fmt.Println("error happend trying to open the editor")
 				fmt.Println(err)
+				os.Exit(1)
 			}
 		}
 
@@ -96,8 +108,51 @@ func doInstall(packageNames []string, installLoc string) {
 		if err := runCommand("makepkg", "-f", "-s", "-i", "-c", "-D", pkgInstall); err != nil {
 			fmt.Println("error happend making the packages")
 			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
+	os.Exit(0)
+}
+
+func doUpdate(installLoc string) {
+	entries, err := os.ReadDir(installLoc)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	for _, dir := range entries {
+		pkgInstall := installLoc + "/" + dir.Name()
+		pkg := dir.Name()
+
+		fmt.Println("Updating " + dir.Name())
+		if err := runCommand("git", "pull", pkgInstall); err != nil {
+			fmt.Println("error happend updating git repo")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		var input string
+		fmt.Printf("Do you want to edit the PKGBUILD for %s? [y/N]: ", pkg)
+		fmt.Scanln(&input)
+		switch input {
+		case "y", "Y":
+			editor := getEditor()
+			if err := runCommand(editor, pkgInstall+"/PKGBUILD"); err != nil {
+				fmt.Println("error happend trying to open the editor")
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
+
+		fmt.Println("Building and installing the package " + pkg)
+		// instal dependencies, install, clean
+		if err := runCommand("makepkg", "-f", "-s", "-i", "-c", "-D", pkgInstall); err != nil {
+			fmt.Println("error happend making the packages")
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+	}
+	os.Exit(0)
 }
 
 func doRemove(packageNames []string, installLoc string) {
@@ -106,7 +161,7 @@ func doRemove(packageNames []string, installLoc string) {
 	fmt.Scanln(&input)
 	if input == "n" || input == "N" {
 		fmt.Println("Stoping...")
-		return
+		os.Exit(1)
 	}
 
 	for _, pkg := range packageNames {
@@ -114,28 +169,32 @@ func doRemove(packageNames []string, installLoc string) {
 		if err := runCommand("sudo", "pacman", "-R", pkg); err != nil {
 			fmt.Println("error happend deleting the package")
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 
 		fmt.Println("Deleting local git repo of " + pkg)
 		if err := runCommand("rm", "-rf", installLoc+"/"+pkg); err != nil {
 			fmt.Println("error happend deleting the package")
 			fmt.Println(err)
+			os.Exit(1)
 		}
 	}
+	os.Exit(0)
 }
 
 func setupInstallDir() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatalln("Error getting user home directory")
+		fmt.Println("Error getting user home directory")
+		os.Exit(1)
 	}
 
 	installLoc := homeDir + "/.cache/ygh"
 	if _, err := os.Stat(installLoc); os.IsNotExist(err) {
 		err := os.Mkdir(installLoc, 0755)
 		if err != nil {
-			log.Fatalln("error creating" + installLoc + " directory")
+			fmt.Println("error creating" + installLoc + " directory")
+			os.Exit(1)
 		}
 	}
 	return installLoc
