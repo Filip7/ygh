@@ -8,23 +8,40 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type Args struct {
 	S      bool
+	R      bool
 	editor string
 }
 
 var args Args
 
 func main() {
-	flag.BoolVar(&args.S, "S", false, "Do the sync operation")
-	flag.StringVar(&args.editor, "editor", "", "Define editor to use when editing the PKGBUILD")
-	flag.Parse()
+	flagProcessing()
 	packageNames := flag.Args()
 
 	installLoc := setupInstallDir()
 
+	if args.S {
+		doInstall(packageNames, installLoc)
+	}
+
+	if args.R {
+		doRemove(packageNames, installLoc)
+	}
+}
+
+func flagProcessing() {
+	flag.BoolVar(&args.S, "S", false, "Do the sync operation")
+	flag.BoolVar(&args.R, "R", false, "Remove packages")
+	flag.StringVar(&args.editor, "editor", "", "Define editor to use when editing the PKGBUILD")
+	flag.Parse()
+}
+
+func doInstall(packageNames []string, installLoc string) {
 	for _, pkg := range packageNames {
 		url := fmt.Sprintf("https://raw.githubusercontent.com/archlinux/aur/refs/heads/%s/PKGBUILD", pkg)
 		resp, err := http.Get(url)
@@ -56,7 +73,7 @@ func main() {
 				fmt.Println(err)
 			}
 		} else {
-			fmt.Println("Repo exists...updating")
+			fmt.Println("Repo exists...updating " + pkg)
 			if err := runCommand("git", "fetch", pkgInstall); err != nil {
 				fmt.Println("error happend updating git repo")
 				fmt.Println(err)
@@ -74,10 +91,35 @@ func main() {
 			}
 		}
 
-		fmt.Println("Building and installing the package")
+		fmt.Println("Building and installing the package " + pkg)
 		// instal dependencies, install, clean
 		if err := runCommand("makepkg", "-f", "-s", "-i", "-c", "-D", pkgInstall); err != nil {
 			fmt.Println("error happend making the packages")
+			fmt.Println(err)
+		}
+	}
+}
+
+func doRemove(packageNames []string, installLoc string) {
+	var input string
+	fmt.Printf("Are you sure you want to delete %s? [Y/n]:", strings.Join(packageNames, " "))
+	fmt.Scanln(&input)
+	if input == "n" || input == "N" {
+		fmt.Println("Stoping...")
+		return
+	}
+
+	for _, pkg := range packageNames {
+		fmt.Println("Uninstalling " + pkg)
+		if err := runCommand("sudo", "pacman", "-R", pkg); err != nil {
+			fmt.Println("error happend deleting the package")
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println("Deleting local git repo of " + pkg)
+		if err := runCommand("rm", "-rf", installLoc+"/"+pkg); err != nil {
+			fmt.Println("error happend deleting the package")
 			fmt.Println(err)
 		}
 	}
