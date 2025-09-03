@@ -21,6 +21,8 @@ For every update you have to repeat those steps.
 
 Here is an example:
 
+Go to <https://github.com/Filip7/ygh/releases/latest> and switch version in the example with the version of the last release.
+
 ```sh
 # Download the package
 curl -LO https://github.com/Filip7/ygh/releases/download/v1.2.0/ygh_Linux_x86_64.tar.gz
