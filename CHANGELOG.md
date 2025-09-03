@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0](https://github.com/Filip7/ygh/compare/v1.2.0...v1.3.0) (2025-09-03)
+
+
+### Features
+
+* implement update of packages using -Syu ([d9b305f](https://github.com/Filip7/ygh/commit/d9b305fec9eeeab6e58bc7d17f2e81a97ee56d2e))
+* support deleting of the package using -R ([8ba621a](https://github.com/Filip7/ygh/commit/8ba621aad75a1ff7b465b5f98865818d79c96d84))
+
 ## [1.2.0](https://github.com/Filip7/ygh/compare/v1.1.0...v1.2.0) (2025-09-03)
 
 
