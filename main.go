@@ -11,13 +11,15 @@ import (
 )
 
 type Args struct {
-	S bool
+	S      bool
+	editor string
 }
 
 var args Args
 
 func main() {
 	flag.BoolVar(&args.S, "S", false, "Do the sync operation")
+	flag.StringVar(&args.editor, "editor", "", "Define editor to use when editing the PKGBUILD")
 	flag.Parse()
 	packageNames := flag.Args()
 
@@ -36,7 +38,7 @@ func main() {
 		}
 
 		var input string
-		fmt.Printf("Do you want to read the PKGBUILD for %s? [y/N]: ", pkg)
+		fmt.Printf("Do you want to read the PKGBUILD for %s before downloading? [y/N]: ", pkg)
 		fmt.Scanln(&input)
 		switch input {
 		case "y", "Y":
@@ -47,22 +49,34 @@ func main() {
 		}
 
 		fmt.Println("Cloning the repo...")
-		if _, err := os.Stat(installLoc + "/" + pkg); os.IsNotExist(err) {
-			if err := runCommand("git", "clone", "--branch", pkg, "--single-branch", "https://github.com/archlinux/aur.git", installLoc+"/"+pkg); err != nil {
+		pkgInstall := installLoc + "/" + pkg
+		if _, err := os.Stat(pkgInstall); os.IsNotExist(err) {
+			if err := runCommand("git", "clone", "--branch", pkg, "--single-branch", "https://github.com/archlinux/aur.git", pkgInstall); err != nil {
 				fmt.Println("error happend cloning git repo")
 				fmt.Println(err)
 			}
 		} else {
 			fmt.Println("Repo exists...updating")
-			if err := runCommand("git", "fetch", installLoc+"/"+pkg); err != nil {
+			if err := runCommand("git", "fetch", pkgInstall); err != nil {
 				fmt.Println("error happend updating git repo")
+				fmt.Println(err)
+			}
+		}
+
+		fmt.Printf("Do you want to edit the PKGBUILD for %s? [y/N]: ", pkg)
+		fmt.Scanln(&input)
+		switch input {
+		case "y", "Y":
+			editor := getEditor()
+			if err := runCommand(editor, pkgInstall+"/PKGBUILD"); err != nil {
+				fmt.Println("error happend trying to open the editor")
 				fmt.Println(err)
 			}
 		}
 
 		fmt.Println("Building and installing the package")
 		// instal dependencies, install, clean
-		if err := runCommand("makepkg", "-f", "-s", "-i", "-c", "-D", installLoc+"/"+pkg); err != nil {
+		if err := runCommand("makepkg", "-f", "-s", "-i", "-c", "-D", pkgInstall); err != nil {
 			fmt.Println("error happend making the packages")
 			fmt.Println(err)
 		}
@@ -83,6 +97,21 @@ func setupInstallDir() string {
 		}
 	}
 	return installLoc
+}
+
+func getEditor() string {
+	if args.editor != "" {
+		return args.editor
+	}
+
+	// Fall back to $EDITOR environment variable
+	editor := os.Getenv("EDITOR")
+	if editor != "" {
+		return editor
+	}
+
+	// Final fallback
+	return "vi"
 }
 
 func handlePKGBUILDShowing(body []byte, pkg string) bool {

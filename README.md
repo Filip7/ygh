@@ -23,7 +23,15 @@ Use it like this
 ./ygh -S yay pacaur
 ```
 
-## Plans
+If the app detects that the app is already downloaded, it will try to update it instead.
+
+`ygh` supports editing the PKGBUILD before installing the package. It will either use `$EDITOR` variable or you can specify it like this:
+
+```sh
+./ygh --editor nvim -S yay
+```
+
+## Future plan
 
 The plan is to support more of the `pacman` commands. Look into the ALPM project and maybe use it instead of calling makepkg via command execute.  
 Investigate how to implement updates.  
