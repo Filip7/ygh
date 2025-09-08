@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/Filip7/ygh/compare/v1.3.0...v1.4.0) (2025-09-08)
+
+
+### Features
+
+* update to go 1.25 and use experimental garbage collector ([6595ed8](https://github.com/Filip7/ygh/commit/6595ed8704eab8ec35c2ae4809d7297135f97078))
+
 ## [1.3.0](https://github.com/Filip7/ygh/compare/v1.2.0...v1.3.0) (2025-09-03)
 
 
