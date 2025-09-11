@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/Filip7/ygh/compare/v1.4.0...v1.4.1) (2025-09-11)
+
+
+### Bug Fixes
+
+* add go-version to setup-go ([ec63671](https://github.com/Filip7/ygh/commit/ec63671eb70e324fea79dcac3a4253c318966f44))
+
 ## [1.4.0](https://github.com/Filip7/ygh/compare/v1.3.0...v1.4.0) (2025-09-08)
 
 
